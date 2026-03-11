@@ -40,7 +40,12 @@ tasks:
   aws:services:
     desc: Show ECS auth/world service status.
     cmds:
-      - aws ecs describe-services --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)" --services azerothcore-authserver azerothcore-worldserver --query 'services[].{service:serviceName,desired:desiredCount,running:runningCount,pending:pendingCount,status:status}' --output table
+      - >-
+        aws ecs describe-services
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --services azerothcore-authserver azerothcore-worldserver
+        --query 'services[].{service:serviceName,desired:desiredCount,running:runningCount,pending:pendingCount,status:status}'
+        --output table
 
   tf:lock:
     desc: Refresh Terraform provider lock file for local macOS and Linux x86_64.

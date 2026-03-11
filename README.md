@@ -1,7 +1,7 @@
 # AzerothCore AWS Terraform
 
-This repo provisions an AzerothCore stack on AWS using the official precompiled `acore` Docker Hub images instead of building
-AzerothCore from source.
+This repo provisions an AzerothCore stack on AWS using the official precompiled
+`acore` Docker Hub images instead of building AzerothCore from source.
 
 ## Summary
 
@@ -46,20 +46,26 @@ aws secretsmanager put-secret-value \
   --secret-string '{"username":"<dockerhub-username>","password":"<dockerhub-password-or-token>"}'
 ```
 
-`docker_registry_auth_enabled` controls whether ECS actually uses those credentials for image pulls. If you already manage
-the secret elsewhere, you can still set `TF_VAR_docker_registry_credentials_secret_arn` instead.
+`docker_registry_auth_enabled` controls whether ECS actually uses those credentials
+for image pulls. If you already manage the secret elsewhere, you can still set
+`TF_VAR_docker_registry_credentials_secret_arn` instead.
 
 ## DB Bootstrap
 
-Terraform creates a task definition for the official `acore/ac-wotlk-db-import` image. Run it once after `terraform apply`
-to initialize the AzerothCore databases:
+Terraform creates a task definition for the official `acore/ac-wotlk-db-import`
+image. Run it once after `terraform apply` to initialize the AzerothCore
+databases:
 
 ```bash
+SUBNETS='<private_subnet_ids>'
+SG='<ecs_security_group_id>'
+NETCFG="awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}"
+
 aws ecs run-task \
   --cluster <ecs_cluster_name> \
   --launch-type FARGATE \
   --task-definition <db_import_task_definition_arn> \
-  --network-configuration "awsvpcConfiguration={subnets=[<private_subnet_ids>],securityGroups=[<ecs_security_group_id>],assignPublicIp=DISABLED}"
+  --network-configuration "$NETCFG"
 ```
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/db-import`.
@@ -70,18 +76,64 @@ Terraform also creates a task definition for the official `acore/ac-wotlk-client
 `terraform apply` to populate EFS with maps, vmaps, and mmaps:
 
 ```bash
+SUBNETS='<private_subnet_ids>'
+SG='<ecs_security_group_id>'
+NETCFG="awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}"
+
 aws ecs run-task \
   --cluster <ecs_cluster_name> \
   --launch-type FARGATE \
   --task-definition <client_data_task_definition_arn> \
-  --network-configuration "awsvpcConfiguration={subnets=[<private_subnet_ids>],securityGroups=[<ecs_security_group_id>],assignPublicIp=DISABLED}"
+  --network-configuration "$NETCFG"
 ```
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/client-data`.
 
+## SQL Administration
+
+Terraform creates a one-off MySQL admin task definition you can use to run SQL
+against the private RDS instance from inside the VPC.
+
+Example: update `realmlist.address` to `wow.thekbb.net`:
+
+```bash
+SUBNETS='<private_subnet_ids>'
+SG='<ecs_security_group_id>'
+NETCFG="awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}"
+SQL="UPDATE realmlist SET address = 'wow.thekbb.net' WHERE id = 1;"
+OVERRIDES='{"containerOverrides":[{"name":"mysql-admin","environment":[{"name":"SQL","value":"'"$SQL"'"}]}]}'
+
+aws ecs run-task \
+  --cluster <ecs_cluster_name> \
+  --launch-type FARGATE \
+  --task-definition <mysql_admin_task_definition_arn> \
+  --network-configuration "$NETCFG" \
+  --overrides "$OVERRIDES"
+```
+
+Example: inspect the current realm rows:
+
+```bash
+SUBNETS='<private_subnet_ids>'
+SG='<ecs_security_group_id>'
+NETCFG="awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}"
+SQL='SELECT id, name, address, localAddress, localSubnetMask, port FROM realmlist;'
+OVERRIDES='{"containerOverrides":[{"name":"mysql-admin","environment":[{"name":"SQL","value":"'"$SQL"'"}]}]}'
+
+aws ecs run-task \
+  --cluster <ecs_cluster_name> \
+  --launch-type FARGATE \
+  --task-definition <mysql_admin_task_definition_arn> \
+  --network-configuration "$NETCFG" \
+  --overrides "$OVERRIDES"
+```
+
+Watch the logs in CloudWatch under `/ecs/azerothcore/mysql-admin`.
+
 ## Local Smoke Test
 
-The local [docker-compose.yml](/Users/thekbb/wow-infra/docker-compose.yml) uses the official `acore` images too. It starts:
+The local [docker-compose.yml](/Users/thekbb/wow-infra/docker-compose.yml) uses
+the official `acore` images too. It starts:
 
 - local MySQL
 - the official `ac-wotlk-client-data` image to populate a Docker volume with maps/vmaps/mmaps
@@ -100,8 +152,10 @@ docker compose config
 
 ## Client Data
 
-The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem before
-players connect. The `client-data` ECS task above is the intended cloud bootstrap path for that.
+The official worldserver image expects maps/vmaps/mmaps in
+`/azerothcore/env/dist/data`. Populate the EFS filesystem before players
+connect. The `client-data` ECS task above is the intended cloud bootstrap path
+for that.
 
 Then initialize Terraform normally:
 
@@ -111,8 +165,9 @@ terraform init
 
 ## Notes
 
-- Network Load Balancer preserves the client source IP. Because of that, the ECS task security group must allow your client
-  CIDRs directly via `allowed_ingress_cidrs`. The NLB itself does not have a security group.
+- Network Load Balancer preserves the client source IP. Because of that, the ECS
+  task security group must allow your client CIDRs directly via
+  `allowed_ingress_cidrs`. The NLB itself does not have a security group.
 - The official images come from the AzerothCore `acore-docker` project and Docker Hub.
-- The DB bootstrap task is the official AzerothCore importer/bootstrap image. It is not the old custom "load an arbitrary
-  SQL dump from S3" flow.
+- The DB bootstrap task is the official AzerothCore importer/bootstrap image. It
+  is not the old custom "load an arbitrary SQL dump from S3" flow.

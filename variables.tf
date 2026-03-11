@@ -118,6 +118,12 @@ variable "log_retention_days" {
   default     = 14
 }
 
+variable "mysql_admin_image" {
+  type        = string
+  description = "MySQL client image URI for one-off SQL administration tasks."
+  default     = "mysql:8.4"
+}
+
 variable "private_subnet_cidrs" {
   type        = list(string)
   description = "Private subnet CIDRs (one per AZ)."

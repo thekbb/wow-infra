@@ -22,6 +22,11 @@ resource "aws_cloudwatch_log_group" "client_data" {
   retention_in_days = var.log_retention_days
 }
 
+resource "aws_cloudwatch_log_group" "mysql_admin" {
+  name              = "/ecs/azerothcore/mysql-admin"
+  retention_in_days = var.log_retention_days
+}
+
 resource "aws_iam_role" "ecs_task_execution" {
   name = "azerothcore-ecs-exec"
   assume_role_policy = jsonencode({
@@ -64,6 +69,7 @@ resource "aws_iam_role_policy_attachment" "secrets" {
 
 locals {
   db_secret_login_database_info     = "${aws_secretsmanager_secret.db.arn}:login_database_info::"
+  db_secret_password                = "${aws_secretsmanager_secret.db.arn}:password::"
   db_secret_world_database_info     = "${aws_secretsmanager_secret.db.arn}:world_database_info::"
   db_secret_character_database_info = "${aws_secretsmanager_secret.db.arn}:character_database_info::"
   docker_registry_secret_arn        = var.docker_registry_credentials_secret_arn != "" ? var.docker_registry_credentials_secret_arn : aws_secretsmanager_secret.docker_registry.arn
@@ -263,6 +269,50 @@ resource "aws_ecs_task_definition" "client_data" {
             awslogs-group         = aws_cloudwatch_log_group.client_data.name
             awslogs-region        = "us-east-2"
             awslogs-stream-prefix = "client-data"
+          }
+        }
+      },
+      local.registry_credentials
+    )
+  ])
+}
+
+resource "aws_ecs_task_definition" "mysql_admin" {
+  family                   = "azerothcore-mysql-admin"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+
+  container_definitions = jsonencode([
+    merge(
+      {
+        name      = "mysql-admin"
+        image     = var.mysql_admin_image
+        essential = true
+        entryPoint = [
+          "sh",
+          "-lc"
+        ]
+        command = [
+          "mysql --host=\"$DB_HOST\" --user=\"$DB_USER\" \"$DB_NAME\" -e \"$SQL\""
+        ]
+        environment = [
+          { name = "DB_HOST", value = aws_db_instance.this.address },
+          { name = "DB_NAME", value = var.db_auth_name },
+          { name = "DB_USER", value = var.db_username },
+          { name = "SQL", value = "SELECT 1;" }
+        ]
+        secrets = [
+          { name = "MYSQL_PWD", valueFrom = local.db_secret_password }
+        ]
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.mysql_admin.name
+            awslogs-region        = "us-east-2"
+            awslogs-stream-prefix = "mysql-admin"
           }
         }
       },
