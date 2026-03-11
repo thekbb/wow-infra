@@ -46,3 +46,8 @@ output "github_actions_terraform_plan_role_arn" {
   description = "IAM role ARN for the GitHub Actions Terraform plan workflow."
   value       = aws_iam_role.github_actions_terraform_plan.arn
 }
+
+output "github_actions_terraform_apply_role_arn" {
+  description = "IAM role ARN for the GitHub Actions Terraform apply workflow."
+  value       = aws_iam_role.github_actions_terraform_apply.arn
+}

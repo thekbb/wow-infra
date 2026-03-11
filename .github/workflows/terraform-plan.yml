@@ -9,6 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
+  TF_CLI_ARGS_init: -lockfile=readonly
 
 concurrency:
   group: terraform-plan
