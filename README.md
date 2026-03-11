@@ -52,8 +52,6 @@ Run:
 docker compose up
 ```
 
-Check the rendered config first if you want:
-
 ```bash
 docker compose config
 ```
@@ -62,61 +60,12 @@ docker compose config
 
 The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem before players connect.
 
-## Remote State Bootstrap
-
-Terraform is configured to use an S3 backend in `us-east-2` with S3 lockfiles. Because the state bucket must exist before `terraform init`, create it once with the AWS CLI:
-
-```bash
-export AWS_REGION=us-east-2
-export TF_STATE_BUCKET="wow-infra-tfstate"
-
-aws s3api create-bucket \
-  --bucket "$TF_STATE_BUCKET" \
-  --region "$AWS_REGION" \
-  --create-bucket-configuration LocationConstraint="$AWS_REGION"
-
-aws s3api put-bucket-versioning \
-  --bucket "$TF_STATE_BUCKET" \
-  --versioning-configuration Status=Enabled
-
-aws s3api put-public-access-block \
-  --bucket "$TF_STATE_BUCKET" \
-  --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
-
-aws s3api put-bucket-encryption \
-  --bucket "$TF_STATE_BUCKET" \
-  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
-```
 
 Then initialize Terraform normally:
 
 ```bash
 terraform init
 ```
-
-## Terraform Apply
-
-```bash
-terraform apply
-```
-
-Key variables you may want to adjust:
-- `allowed_ingress_cidrs`
-- `db_instance_class`
-- `desired_task_cpu`
-- `desired_task_memory`
-- `auth_image`
-- `world_image`
-- `db_import_image`
-
-Outputs
-- `nlb_dns_name`
-- `rds_endpoint`
-- `db_secret_arn`
-- `db_import_task_definition_arn`
-- `ecs_cluster_name`
-- `ecs_security_group_id`
-- `private_subnet_ids`
 
 ## Notes
 
