@@ -132,40 +132,6 @@ aws ecs run-task \
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/mysql-admin`.
 
-## One-Off Auth and Characters Transfer
-
-Terraform also manages a temporary S3 bucket for one-off auth and characters DB
-transfer artifacts. Apply Terraform before using the scripts below, then remove
-the bucket resource after the migration is finished.
-
-Dump and upload local native-MySQL `acore_auth` and `acore_characters`:
-
-```bash
-scripts/export-local-auth-characters.sh
-```
-
-That script uploads compressed dumps to the transfer bucket and prints the
-prefix to use for the cloud-side import.
-
-Import those dumps into the private RDS instance, restore the `realmlist` row to
-the NLB DNS name and world port, and bring the ECS services back up:
-
-```bash
-scripts/import-cloud-auth-characters.sh <transfer-prefix>
-```
-
-The import script:
-
-- scales `azerothcore-authserver` and `azerothcore-worldserver` down to `0`
-- imports `acore_auth` and `acore_characters` from the transfer bucket
-- updates `acore_auth.realmlist` back to the public NLB DNS name and `8085`
-- verifies the `realmlist` row through the existing `mysql-admin` ECS task
-- restores the prior ECS service counts
-
-Set `LOCAL_DB_HOST`, `LOCAL_DB_PORT`, `LOCAL_DB_USER`, `LOCAL_DB_PASSWORD`, or
-`TRANSFER_PREFIX` before running the export script if your local MySQL differs
-from the defaults.
-
 ## Local Smoke Test
 
 The local [docker-compose.yml](/Users/thekbb/wow-infra/docker-compose.yml) uses
