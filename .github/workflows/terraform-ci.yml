@@ -1,0 +1,37 @@
+name: Terraform CI
+
+on:
+  pull_request:
+
+env:
+  TF_CLI_ARGS_init: -lockfile=readonly
+
+concurrency:
+  group: terraform-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Terraform Checks
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.6
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Run Terraform CI Checks
+        run: task tf:ci
