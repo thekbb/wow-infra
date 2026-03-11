@@ -13,6 +13,11 @@ output "db_secret_arn" {
   value       = aws_secretsmanager_secret.db.arn
 }
 
+output "transfer_bucket_name" {
+  description = "Temporary S3 bucket for one-off SQL transfer artifacts."
+  value       = aws_s3_bucket.transfer.bucket
+}
+
 output "docker_registry_credentials_secret_arn" {
   description = "Secrets Manager ARN for the Terraform-managed Docker registry credentials secret."
   value       = aws_secretsmanager_secret.docker_registry.arn
