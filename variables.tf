@@ -22,6 +22,12 @@ variable "auth_image" {
   default     = "acore/ac-wotlk-authserver:master"
 }
 
+variable "client_data_image" {
+  type        = string
+  description = "Client data image URI."
+  default     = "acore/ac-wotlk-client-data:master"
+}
+
 variable "db_allocated_storage" {
   type        = number
   description = "RDS allocated storage (GiB)."

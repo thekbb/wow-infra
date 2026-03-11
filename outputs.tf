@@ -18,6 +18,11 @@ output "db_import_task_definition_arn" {
   value       = aws_ecs_task_definition.db_import.arn
 }
 
+output "client_data_task_definition_arn" {
+  description = "ECS task definition ARN for client data population."
+  value       = aws_ecs_task_definition.client_data.arn
+}
+
 output "ecs_cluster_name" {
   description = "ECS cluster name."
   value       = aws_ecs_cluster.this.name

@@ -9,12 +9,14 @@ AzerothCore from source.
 - ECS Fargate services for `authserver` and `worldserver`
 - RDS MySQL 8.4 in private subnets
 - EFS mounted into `worldserver` at `/azerothcore/env/dist/data`
+- One-off ECS task definition for the official `acore/ac-wotlk-client-data` image
 - One-off ECS task definition for the official `acore/ac-wotlk-db-import` bootstrap image
 - CloudWatch Logs and Secrets Manager for runtime configuration
 
 ## Default Images
 
 - `acore/ac-wotlk-authserver:master`
+- `acore/ac-wotlk-client-data:master`
 - `acore/ac-wotlk-worldserver:master`
 - `acore/ac-wotlk-db-import:master`
 
@@ -24,7 +26,7 @@ AzerothCore from source.
 2. `terraform init`
 3. `terraform apply`
 4. Run the `db-import` ECS task once.
-5. Put client data into EFS.
+5. Run the `client-data` ECS task once.
 6. Update `acore_auth.realmlist.address` to the NLB DNS name or your domain.
 
 ## DB Bootstrap
@@ -41,6 +43,21 @@ aws ecs run-task \
 ```
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/db-import`.
+
+## Client Data Bootstrap
+
+Terraform also creates a task definition for the official `acore/ac-wotlk-client-data` image. Run it once after
+`terraform apply` to populate EFS with maps, vmaps, and mmaps:
+
+```bash
+aws ecs run-task \
+  --cluster <ecs_cluster_name> \
+  --launch-type FARGATE \
+  --task-definition <client_data_task_definition_arn> \
+  --network-configuration "awsvpcConfiguration={subnets=[<private_subnet_ids>],securityGroups=[<ecs_security_group_id>],assignPublicIp=DISABLED}"
+```
+
+Watch the logs in CloudWatch under `/ecs/azerothcore/client-data`.
 
 ## Local Smoke Test
 
@@ -64,7 +81,7 @@ docker compose config
 ## Client Data
 
 The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem before
-players connect.
+players connect. The `client-data` ECS task above is the intended cloud bootstrap path for that.
 
 Then initialize Terraform normally:
 
