@@ -85,8 +85,7 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "secretsmanager:DescribeSecret",
           "secretsmanager:GetSecretValue",
           "secretsmanager:GetResourcePolicy",
-          "secretsmanager:ListSecrets",
-          "secretsmanager:ListSecretVersionIds",
+          "secretsmanager:List*",
           "sts:GetCallerIdentity"
         ]
         Resource = "*"
