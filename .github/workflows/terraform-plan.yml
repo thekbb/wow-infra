@@ -1,0 +1,40 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.tf"
+      - ".github/workflows/**"
+
+env:
+  AWS_REGION: us-east-2
+
+concurrency:
+  group: terraform-plan
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::628639830692:role/wow-infra-github-terraform-plan
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Plan
+        uses: thekbb/terraform-plan-commenter-action@v1
+        with:
+          terraform-version: "1.14.6"

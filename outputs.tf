@@ -41,3 +41,8 @@ output "connection_info" {
     realm_host = aws_lb.nlb.dns_name
   }
 }
+
+output "github_actions_terraform_plan_role_arn" {
+  description = "IAM role ARN for the GitHub Actions Terraform plan workflow."
+  value       = aws_iam_role.github_actions_terraform_plan.arn
+}
