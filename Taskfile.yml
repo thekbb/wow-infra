@@ -19,6 +19,11 @@ tasks:
     cmds:
       - terraform -chdir={{.TF_DIR}} fmt -recursive
 
+  tf:fmt-check:
+    desc: Check Terraform formatting without changing files, failing if change needed.
+    cmds:
+      - terraform -chdir={{.TF_DIR}} fmt -check -recursive
+
   tf:lint:
     desc: Run tflint.
     cmds:
@@ -28,9 +33,15 @@ tasks:
     desc: Terraform validate.
     deps:
       - tf:init
-      - tf:fmt
     cmds:
       - terraform -chdir={{.TF_DIR}} validate
+
+  tf:ci:
+    desc: Run Terraform CI checks.
+    cmds:
+      - task: tf:fmt-check
+      - task: tf:validate
+      - task: tf:lint
 
   tf:init:
     desc: Terraform init.
