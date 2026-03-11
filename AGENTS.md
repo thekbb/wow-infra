@@ -1,5 +1,9 @@
 # Repository Instructions
 
+## Terraform Variable Style
+
+- Keep variable blocks in `variables.tf` alphabetized by variable name.
+
 ## Terraform IAM Policy Style
 
 - In IAM policy JSON/HCL, alphabetize every `Action` list within each `Statement` or `Sid`.
