@@ -28,9 +28,9 @@ tasks:
       - task: compose:validate
 
   compose:lint:
-    desc: Lint Docker Compose YAML.
+    desc: Lint Docker Compose and Task YAML.
     cmds:
-      - yamllint docker-compose.yml
+      - yamllint docker-compose.yml Taskfile.yml
 
   compose:validate:
     desc: Validate Docker Compose configuration.
