@@ -23,11 +23,11 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 ## Quick Start
 
 1. Create the remote state bucket.
-2. `terraform init`
-3. `terraform apply`
-4. Run the `db-import` ECS task once.
-5. Run the `client-data` ECS task once.
-6. Update `acore_auth.realmlist.address` to the NLB DNS name or your domain.
+1. `terraform init`
+1. `terraform apply`
+1. Run the `db-import` ECS task once.
+1. Run the `client-data` ECS task once.
+1. Update `acore_auth.realmlist.address` to the NLB DNS name or your domain.
 
 ## Docker Hub Rate Limits
 
@@ -46,9 +46,8 @@ aws secretsmanager put-secret-value \
   --secret-string '{"username":"<dockerhub-username>","password":"<dockerhub-password-or-token>"}'
 ```
 
-`docker_registry_auth_enabled` controls whether ECS actually uses those credentials
-for image pulls. If you already manage the secret elsewhere, you can still set
-`TF_VAR_docker_registry_credentials_secret_arn` instead.
+`docker_registry_auth_enabled` controls whether ECS actually uses those credentials for image pulls. If you already
+manage the secret elsewhere, you can still set `TF_VAR_docker_registry_credentials_secret_arn` instead.
 
 ## DB Bootstrap
 
@@ -91,8 +90,8 @@ Watch the logs in CloudWatch under `/ecs/azerothcore/client-data`.
 
 ## SQL Administration
 
-Terraform creates a one-off MySQL admin task definition you can use to run SQL
-against the private RDS instance from inside the VPC.
+Terraform creates a one-off MySQL admin task definition you can use to run SQL against the private RDS instance
+from inside the VPC.
 
 Example: update `realmlist.address` to `wow.thekbb.net`:
 
@@ -152,10 +151,8 @@ docker compose config
 
 ## Client Data
 
-The official worldserver image expects maps/vmaps/mmaps in
-`/azerothcore/env/dist/data`. Populate the EFS filesystem before players
-connect. The `client-data` ECS task above is the intended cloud bootstrap path
-for that.
+The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem
+before players connect. The `client-data` ECS task above is the intended cloud bootstrap path for that.
 
 Then initialize Terraform normally:
 
@@ -169,5 +166,5 @@ terraform init
   task security group must allow your client CIDRs directly via
   `allowed_ingress_cidrs`. The NLB itself does not have a security group.
 - The official images come from the AzerothCore `acore-docker` project and Docker Hub.
-- The DB bootstrap task is the official AzerothCore importer/bootstrap image. It
-  is not the old custom "load an arbitrary SQL dump from S3" flow.
+- The DB bootstrap task is the official AzerothCore importer/bootstrap image.
+  It is not the old custom "load an arbitrary SQL dump from S3" flow.
