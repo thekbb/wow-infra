@@ -9,6 +9,11 @@ vars:
 silent: false
 
 tasks:
+  tf:lock:
+    desc: Refresh Terraform provider lock file for local macOS and Linux x86_64.
+    cmds:
+      - terraform -chdir={{.TF_DIR}} providers lock -platform=${TF_LOCK_DARWIN_PLATFORM:-darwin_arm64} -platform=${TF_LOCK_LINUX_PLATFORM:-linux_amd64}
+
   tf:fmt:
     desc: Format Terraform files.
     cmds:
