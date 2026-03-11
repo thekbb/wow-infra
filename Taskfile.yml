@@ -47,6 +47,11 @@ tasks:
         --query 'services[].{service:serviceName,desired:desiredCount,running:runningCount,pending:pendingCount,status:status}'
         --output table
 
+  wow:adduser:
+    desc: "Create an AzerothCore account via the mysql-admin ECS task. Usage: task wow:adduser USER=<name> [GMLEVEL=3]"
+    cmds:
+      - python3 scripts/wow_adduser.py
+
   tf:lock:
     desc: Refresh Terraform provider lock file for local macOS and Linux x86_64.
     cmds:
