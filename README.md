@@ -15,10 +15,13 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 
 ## Default Images
 
-- `acore/ac-wotlk-authserver:master`
-- `acore/ac-wotlk-client-data:master`
-- `acore/ac-wotlk-worldserver:master`
-- `acore/ac-wotlk-db-import:master`
+- `acore/ac-wotlk-authserver@sha256:cc1a457c5bedc3db65248527757eab15232f9c338f38d7c7fc8e7d58fa97a247`
+- `acore/ac-wotlk-client-data@sha256:76919b5d8080c0ac55ec17299a79e30bbbd94fae778465b742045af0c806db02`
+- `acore/ac-wotlk-worldserver@sha256:abda30081e74c1d56f8c8728541cf8605e6716c828ea13a139dbc76c1175df53`
+- `acore/ac-wotlk-db-import@sha256:f3dc880c09b06f875f1bf9a7ce8da2796ca4ea578445cedf665f99008aebc49d`
+
+These are pinned intentionally so `authserver`, `worldserver`, `client-data`, and `db-import` stay on the same known
+set of upstream images instead of drifting with `:master`.
 
 ## Quick Start
 
