@@ -48,17 +48,23 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
         }
       },
       {
-        Sid    = "TerraformStateObjectsReadWrite"
+        Sid    = "TerraformStateObjectReadWrite"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate"
+      },
+      {
+        Sid    = "TerraformStateLockObjectReadWrite"
         Effect = "Allow"
         Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = [
-          "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate",
-          "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate.tflock"
-        ]
+        Resource = "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate.tflock"
       },
       {
         Sid    = "TerraformPlanReadOnlyAwsApis"
@@ -69,15 +75,17 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "ecs:List*",
           "elasticloadbalancing:Describe*",
           "efs:Describe*",
+          "elasticfilesystem:Describe*",
           "iam:Get*",
           "iam:List*",
           "logs:Describe*",
+          "logs:ListTagsForResource",
           "rds:Describe*",
           "rds:ListTagsForResource",
           "secretsmanager:DescribeSecret",
           "secretsmanager:GetSecretValue",
-          "secretsmanager:ListSecrets",
-          "secretsmanager:ListSecretVersionIds",
+          "secretsmanager:GetResourcePolicy",
+          "secretsmanager:List*",
           "sts:GetCallerIdentity"
         ]
         Resource = "*"
