@@ -14,8 +14,8 @@ output "db_secret_arn" {
 }
 
 output "docker_registry_credentials_secret_arn" {
-  description = "Secrets Manager ARN for Docker registry credentials, if managed by this stack."
-  value       = local.managed_docker_registry_secret_enabled ? aws_secretsmanager_secret.docker_registry[0].arn : null
+  description = "Secrets Manager ARN for the Terraform-managed Docker registry credentials secret."
+  value       = aws_secretsmanager_secret.docker_registry.arn
 }
 
 output "db_import_task_definition_arn" {

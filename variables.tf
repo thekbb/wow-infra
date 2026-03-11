@@ -104,11 +104,6 @@ variable "docker_registry_credentials_secret_arn" {
   type        = string
   description = "Secrets Manager ARN for Docker registry credentials used by ECS image pulls."
   default     = ""
-
-  validation {
-    condition     = !(var.docker_registry_credentials_secret_arn != "" && var.docker_registry_auth_enabled)
-    error_message = "Set either docker_registry_auth_enabled for the Terraform-managed secret or docker_registry_credentials_secret_arn for an external secret, not both."
-  }
 }
 
 variable "docker_registry_credentials_secret_name" {
