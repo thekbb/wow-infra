@@ -70,6 +70,7 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "elasticloadbalancing:Describe*",
           "efs:Describe*",
           "elasticfilesystem:DescribeFileSystems",
+          "elasticfilesystem:DescribeLifecycleConfiguration",
           "iam:Get*",
           "iam:List*",
           "logs:Describe*",
