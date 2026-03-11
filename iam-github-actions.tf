@@ -64,9 +64,9 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
         Sid    = "TerraformStateLockObjectReadWrite"
         Effect = "Allow"
         Action = [
+          "s3:DeleteObject",
           "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:PutObject"
         ]
         Resource = "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate.tflock"
       },
@@ -77,9 +77,9 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "ec2:Describe*",
           "ecs:Describe*",
           "ecs:List*",
+          "elasticfilesystem:Describe*",
           "elasticloadbalancing:Describe*",
           "efs:Describe*",
-          "elasticfilesystem:Describe*",
           "iam:Get*",
           "iam:List*",
           "logs:Describe*",
@@ -87,8 +87,8 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "rds:Describe*",
           "rds:ListTagsForResource",
           "secretsmanager:DescribeSecret",
-          "secretsmanager:GetSecretValue",
           "secretsmanager:GetResourcePolicy",
+          "secretsmanager:GetSecretValue",
           "secretsmanager:List*",
           "sts:GetCallerIdentity"
         ]
@@ -161,9 +161,9 @@ resource "aws_iam_policy" "github_actions_terraform_apply" {
         Sid    = "TerraformStateLockObjectReadWrite"
         Effect = "Allow"
         Action = [
+          "s3:DeleteObject",
           "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:PutObject"
         ]
         Resource = "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate.tflock"
       },
@@ -177,8 +177,8 @@ resource "aws_iam_policy" "github_actions_terraform_apply" {
           "elasticfilesystem:Describe*",
           "elasticloadbalancing:Describe*",
           "iam:Get*",
-          "iam:List*",
           "iam:GetOpenIDConnectProvider",
+          "iam:List*",
           "logs:Describe*",
           "logs:ListTagsForResource",
           "rds:Describe*",
@@ -251,6 +251,12 @@ resource "aws_iam_policy" "github_actions_terraform_apply" {
         Sid    = "TerraformManageRdsAndEfs"
         Effect = "Allow"
         Action = [
+          "elasticfilesystem:CreateFileSystem",
+          "elasticfilesystem:CreateMountTarget",
+          "elasticfilesystem:DeleteFileSystem",
+          "elasticfilesystem:DeleteMountTarget",
+          "elasticfilesystem:TagResource",
+          "elasticfilesystem:UntagResource",
           "rds:AddTagsToResource",
           "rds:CreateDBInstance",
           "rds:CreateDBSubnetGroup",
@@ -258,13 +264,7 @@ resource "aws_iam_policy" "github_actions_terraform_apply" {
           "rds:DeleteDBSubnetGroup",
           "rds:ModifyDBInstance",
           "rds:ModifyDBSubnetGroup",
-          "rds:RemoveTagsFromResource",
-          "elasticfilesystem:CreateFileSystem",
-          "elasticfilesystem:CreateMountTarget",
-          "elasticfilesystem:DeleteFileSystem",
-          "elasticfilesystem:DeleteMountTarget",
-          "elasticfilesystem:TagResource",
-          "elasticfilesystem:UntagResource"
+          "rds:RemoveTagsFromResource"
         ]
         Resource = "*"
       },
