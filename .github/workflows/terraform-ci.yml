@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Infrastructure CI
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   checks:
-    name: Terraform Checks
+    name: Infrastructure Checks
     runs-on: ubuntu-latest
 
     permissions:
@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
 
       - name: Setup Task
         uses: arduino/setup-task@v2
@@ -33,5 +36,8 @@ jobs:
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
 
-      - name: Run Terraform CI Checks
-        run: task tf:ci
+      - name: Install yamllint
+        run: python -m pip install yamllint
+
+      - name: Run Infrastructure CI Checks
+        run: task ci

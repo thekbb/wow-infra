@@ -9,6 +9,28 @@ vars:
 silent: false
 
 tasks:
+  ci:
+    desc: Run all repository CI checks.
+    cmds:
+      - task: tf:ci
+      - task: compose:ci
+
+  compose:ci:
+    desc: Run Docker Compose CI checks.
+    cmds:
+      - task: compose:lint
+      - task: compose:validate
+
+  compose:lint:
+    desc: Lint Docker Compose YAML.
+    cmds:
+      - yamllint docker-compose.yml
+
+  compose:validate:
+    desc: Validate Docker Compose configuration.
+    cmds:
+      - docker compose -f docker-compose.yml config -q
+
   tf:lock:
     desc: Refresh Terraform provider lock file for local macOS and Linux x86_64.
     cmds:
