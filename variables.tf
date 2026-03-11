@@ -94,6 +94,29 @@ variable "desired_task_memory" {
   default     = 2048
 }
 
+variable "docker_registry_auth_enabled" {
+  type        = bool
+  description = "Whether ECS should use Docker registry credentials for authenticated image pulls."
+  default     = true
+}
+
+variable "docker_registry_credentials_secret_arn" {
+  type        = string
+  description = "Secrets Manager ARN for Docker registry credentials used by ECS image pulls."
+  default     = ""
+
+  validation {
+    condition     = !(var.docker_registry_credentials_secret_arn != "" && var.docker_registry_auth_enabled)
+    error_message = "Set either docker_registry_auth_enabled for the Terraform-managed secret or docker_registry_credentials_secret_arn for an external secret, not both."
+  }
+}
+
+variable "docker_registry_credentials_secret_name" {
+  type        = string
+  description = "Secrets Manager name for Terraform-managed Docker registry credentials."
+  default     = "azerothcore-docker-registry-credentials"
+}
+
 variable "log_retention_days" {
   type        = number
   description = "CloudWatch Logs retention in days."

@@ -29,6 +29,28 @@ AzerothCore from source.
 5. Run the `client-data` ECS task once.
 6. Update `acore_auth.realmlist.address` to the NLB DNS name or your domain.
 
+## Docker Hub Rate Limits
+
+AWS ECS pulls these official `acore` images from Docker Hub. If you hit unauthenticated pull rate limits, let Terraform
+manage the Secrets Manager secret resource and then set the secret value separately:
+
+```bash
+export TF_VAR_docker_registry_auth_enabled=true
+
+terraform apply
+```
+
+Then write the credential value once:
+
+```bash
+aws secretsmanager put-secret-value \
+  --secret-id "$(terraform output -raw docker_registry_credentials_secret_arn)" \
+  --secret-string '{"username":"<dockerhub-username>","password":"<dockerhub-password-or-token>"}'
+```
+
+After that, ECS tasks and services will use authenticated pulls. If you already manage the secret elsewhere, you can still
+set `TF_VAR_docker_registry_credentials_secret_arn` instead.
+
 ## DB Bootstrap
 
 Terraform creates a task definition for the official `acore/ac-wotlk-db-import` image. Run it once after `terraform apply`

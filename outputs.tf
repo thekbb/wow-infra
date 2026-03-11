@@ -13,6 +13,11 @@ output "db_secret_arn" {
   value       = aws_secretsmanager_secret.db.arn
 }
 
+output "docker_registry_credentials_secret_arn" {
+  description = "Secrets Manager ARN for Docker registry credentials, if managed by this stack."
+  value       = local.managed_docker_registry_secret_enabled ? aws_secretsmanager_secret.docker_registry[0].arn : null
+}
+
 output "db_import_task_definition_arn" {
   description = "ECS task definition ARN for DB import."
   value       = aws_ecs_task_definition.db_import.arn
