@@ -35,8 +35,6 @@ AWS ECS pulls these official `acore` images from Docker Hub. If you hit unauthen
 manage the Secrets Manager secret resource and then set the secret value separately:
 
 ```bash
-export TF_VAR_docker_registry_auth_enabled=true
-
 terraform apply
 ```
 
@@ -48,8 +46,8 @@ aws secretsmanager put-secret-value \
   --secret-string '{"username":"<dockerhub-username>","password":"<dockerhub-password-or-token>"}'
 ```
 
-After that, ECS tasks and services will use authenticated pulls. If you already manage the secret elsewhere, you can still
-set `TF_VAR_docker_registry_credentials_secret_arn` instead.
+`docker_registry_auth_enabled` controls whether ECS actually uses those credentials for image pulls. If you already manage
+the secret elsewhere, you can still set `TF_VAR_docker_registry_credentials_secret_arn` instead.
 
 ## DB Bootstrap
 

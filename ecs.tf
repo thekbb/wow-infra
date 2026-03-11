@@ -66,9 +66,9 @@ locals {
   db_secret_login_database_info     = "${aws_secretsmanager_secret.db.arn}:login_database_info::"
   db_secret_world_database_info     = "${aws_secretsmanager_secret.db.arn}:world_database_info::"
   db_secret_character_database_info = "${aws_secretsmanager_secret.db.arn}:character_database_info::"
-  docker_registry_secret_arn        = local.managed_docker_registry_secret_enabled ? aws_secretsmanager_secret.docker_registry[0].arn : var.docker_registry_credentials_secret_arn
-  ecs_secret_arns                   = compact([aws_secretsmanager_secret.db.arn, local.docker_registry_secret_arn])
-  registry_credentials              = local.docker_registry_secret_arn == "" ? {} : { repositoryCredentials = { credentialsParameter = local.docker_registry_secret_arn } }
+  docker_registry_secret_arn        = var.docker_registry_credentials_secret_arn != "" ? var.docker_registry_credentials_secret_arn : aws_secretsmanager_secret.docker_registry.arn
+  ecs_secret_arns                   = distinct(compact([aws_secretsmanager_secret.db.arn, aws_secretsmanager_secret.docker_registry.arn, var.docker_registry_credentials_secret_arn]))
+  registry_credentials              = var.docker_registry_auth_enabled ? { repositoryCredentials = { credentialsParameter = local.docker_registry_secret_arn } } : {}
 }
 
 resource "aws_ecs_task_definition" "auth" {
