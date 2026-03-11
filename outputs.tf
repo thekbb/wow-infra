@@ -28,6 +28,11 @@ output "client_data_task_definition_arn" {
   value       = aws_ecs_task_definition.client_data.arn
 }
 
+output "mysql_admin_task_definition_arn" {
+  description = "ECS task definition ARN for one-off SQL administration."
+  value       = aws_ecs_task_definition.mysql_admin.arn
+}
+
 output "ecs_cluster_name" {
   description = "ECS cluster name."
   value       = aws_ecs_cluster.this.name
