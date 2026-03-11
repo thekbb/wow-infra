@@ -12,8 +12,14 @@ tasks:
   ci:
     desc: Run all repository CI checks.
     cmds:
+      - task: md:lint
       - task: tf:ci
       - task: compose:ci
+
+  md:lint:
+    desc: Lint root Markdown files.
+    cmds:
+      - markdownlint ./*.md
 
   compose:ci:
     desc: Run Docker Compose CI checks.

@@ -1,8 +1,10 @@
 # AzerothCore AWS Terraform
 
-This repo provisions an AzerothCore stack on AWS using the official precompiled `acore` Docker Hub images instead of building AzerothCore from source.
+This repo provisions an AzerothCore stack on AWS using the official precompiled `acore` Docker Hub images instead of building
+AzerothCore from source.
 
-Summary
+## Summary
+
 - Public NLB listeners on `3724` and `8085`
 - ECS Fargate services for `authserver` and `worldserver`
 - RDS MySQL 8.4 in private subnets
@@ -10,7 +12,8 @@ Summary
 - One-off ECS task definition for the official `acore/ac-wotlk-db-import` bootstrap image
 - CloudWatch Logs and Secrets Manager for runtime configuration
 
-Default images
+## Default Images
+
 - `acore/ac-wotlk-authserver:master`
 - `acore/ac-wotlk-worldserver:master`
 - `acore/ac-wotlk-db-import:master`
@@ -26,7 +29,8 @@ Default images
 
 ## DB Bootstrap
 
-Terraform creates a task definition for the official `acore/ac-wotlk-db-import` image. Run it once after `terraform apply` to initialize the AzerothCore databases:
+Terraform creates a task definition for the official `acore/ac-wotlk-db-import` image. Run it once after `terraform apply`
+to initialize the AzerothCore databases:
 
 ```bash
 aws ecs run-task \
@@ -41,6 +45,7 @@ Watch the logs in CloudWatch under `/ecs/azerothcore/db-import`.
 ## Local Smoke Test
 
 The local [docker-compose.yml](/Users/thekbb/wow-infra/docker-compose.yml) uses the official `acore` images too. It starts:
+
 - local MySQL
 - the official `ac-wotlk-client-data` image to populate a Docker volume with maps/vmaps/mmaps
 - the official `ac-wotlk-db-import` image to initialize the databases
@@ -58,8 +63,8 @@ docker compose config
 
 ## Client Data
 
-The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem before players connect.
-
+The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem before
+players connect.
 
 Then initialize Terraform normally:
 
@@ -69,6 +74,8 @@ terraform init
 
 ## Notes
 
-- Network Load Balancer preserves the client source IP. Because of that, the ECS task security group must allow your client CIDRs directly via `allowed_ingress_cidrs`. The NLB itself does not have a security group.
+- Network Load Balancer preserves the client source IP. Because of that, the ECS task security group must allow your client
+  CIDRs directly via `allowed_ingress_cidrs`. The NLB itself does not have a security group.
 - The official images come from the AzerothCore `acore-docker` project and Docker Hub.
-- The DB bootstrap task is the official AzerothCore importer/bootstrap image. It is not the old custom "load an arbitrary SQL dump from S3" flow.
+- The DB bootstrap task is the official AzerothCore importer/bootstrap image. It is not the old custom "load an arbitrary
+  SQL dump from S3" flow.
