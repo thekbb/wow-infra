@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  TF_CLI_ARGS_init: -lockfile=readonly
+  TF_CLI_ARGS_init: -backend=false -lockfile=readonly
 
 concurrency:
   group: terraform-ci-${{ github.event.pull_request.number }}
