@@ -97,7 +97,7 @@ variable "desired_task_memory" {
 variable "docker_registry_auth_enabled" {
   type        = bool
   description = "Whether ECS should use Docker registry credentials for authenticated image pulls."
-  default     = false
+  default     = true
 }
 
 variable "docker_registry_credentials_secret_arn" {
