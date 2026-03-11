@@ -1,0 +1,25 @@
+.idea
+.DS_Store
+
+#GET OFF MY LAWN
+*.swo
+*.swp
+
+.DS_Store
+
+# Terraform working directory and state
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Terraform variable files often contain secrets
+*.tfvars
+*.tfvars.json
+
+# Terraform crash and override files
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

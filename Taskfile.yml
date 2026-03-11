@@ -1,0 +1,48 @@
+version: "3"
+
+env:
+  AWS_REGION: "${AWS_REGION:-us-east-2}"
+
+vars:
+  TF_DIR: "."
+
+silent: false
+
+tasks:
+  tf:fmt:
+    desc: Format Terraform files.
+    cmds:
+      - terraform -chdir={{.TF_DIR}} fmt -recursive
+
+  tf:lint:
+    desc: Run tflint.
+    cmds:
+      - tflint --chdir={{.TF_DIR}}
+
+  tf:validate:
+    desc: Terraform validate.
+    deps:
+      - tf:init
+      - tf:fmt
+    cmds:
+      - terraform -chdir={{.TF_DIR}} validate
+
+  tf:init:
+    desc: Terraform init.
+    cmds:
+      - terraform -chdir={{.TF_DIR}} init
+
+  tf:plan:
+    desc: Terraform plan.
+    deps:
+      - tf:init
+      - tf:fmt
+    cmds:
+      - terraform -chdir={{.TF_DIR}} plan
+
+  tf:apply:
+    desc: Terraform apply.
+    deps:
+      - tf:plan
+    cmds:
+      - terraform -chdir={{.TF_DIR}} apply
