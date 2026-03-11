@@ -12,6 +12,15 @@ resource "aws_secretsmanager_secret" "db" {
   name = "azerothcore-db-credentials"
 }
 
+locals {
+  managed_docker_registry_secret_enabled = var.docker_registry_auth_enabled
+}
+
+resource "aws_secretsmanager_secret" "docker_registry" {
+  count = local.managed_docker_registry_secret_enabled ? 1 : 0
+  name  = var.docker_registry_credentials_secret_name
+}
+
 resource "aws_secretsmanager_secret_version" "db" {
   secret_id = aws_secretsmanager_secret.db.id
   secret_string = jsonencode({
