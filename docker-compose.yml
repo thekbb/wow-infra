@@ -23,7 +23,7 @@ services:
       - client-data:/azerothcore/env/dist/data
 
   db-import:
-    image: acore/ac-wotlk-db-import@sha256:f3dc880c09b06f875f1bf9a7ce8da2796ca4ea578445cedf665f99008aebc49d
+    image: acore/ac-wotlk-db-import:master
     container_name: acore-db-import
     depends_on:
       database:

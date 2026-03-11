@@ -48,7 +48,7 @@ tasks:
         --output table
 
   wow:adduser:
-    desc: "Create an AzerothCore account via the mysql-admin ECS task. Usage: task wow:adduser USER=<name> [GMLEVEL=3]"
+    desc: "Create an AzerothCore account via the mysql-admin ECS task. Usage: task wow:adduser ACCOUNT_NAME=<name> [GMLEVEL=3]"
     cmds:
       - python3 scripts/wow_adduser.py
 

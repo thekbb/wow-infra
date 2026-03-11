@@ -55,7 +55,7 @@ variable "db_engine_version" {
 variable "db_import_image" {
   type        = string
   description = "DB bootstrap/import image URI."
-  default     = "acore/ac-wotlk-db-import@sha256:f3dc880c09b06f875f1bf9a7ce8da2796ca4ea578445cedf665f99008aebc49d"
+  default     = "acore/ac-wotlk-db-import:master"
 }
 
 variable "db_instance_class" {

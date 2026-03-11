@@ -60,14 +60,20 @@ def require_env(name: str) -> str:
     value = os.environ.get(name, "").strip()
     if value:
         return value
-    print(f"{name} is required. Usage: task wow:adduser USER=<name> [GMLEVEL=3]", file=sys.stderr)
+    print(
+        f"{name} is required. Usage: task wow:adduser ACCOUNT_NAME=<name> [GMLEVEL=3]",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
 def main() -> int:
-    username = require_env("USER")
+    username = require_env("ACCOUNT_NAME")
     if len(username) > 20:
-        print("USER must be 20 characters or fewer for AzerothCore accounts.", file=sys.stderr)
+        print(
+            "ACCOUNT_NAME must be 20 characters or fewer for AzerothCore accounts.",
+            file=sys.stderr,
+        )
         return 1
 
     gmlevel = os.environ.get("GMLEVEL", "").strip() or None

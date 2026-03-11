@@ -24,3 +24,10 @@
 - Manage AWS infrastructure and configuration through Terraform and GitOps.
 - Do not create or mutate AWS resources with the AWS CLI unless the user explicitly asks
   for a one-off operational command.
+
+## Shell Examples
+
+- All shell examples must be well-formed for `zsh` on macOS.
+- Prefer copy-paste-safe commands that do not depend on shell-specific line wrapping behavior.
+- When providing multiline commands, format continuations so they can be pasted into `zsh`
+  without introducing parse errors.

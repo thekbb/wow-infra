@@ -18,10 +18,10 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 - `acore/ac-wotlk-authserver@sha256:cc1a457c5bedc3db65248527757eab15232f9c338f38d7c7fc8e7d58fa97a247`
 - `acore/ac-wotlk-client-data@sha256:76919b5d8080c0ac55ec17299a79e30bbbd94fae778465b742045af0c806db02`
 - `acore/ac-wotlk-worldserver@sha256:abda30081e74c1d56f8c8728541cf8605e6716c828ea13a139dbc76c1175df53`
-- `acore/ac-wotlk-db-import@sha256:f3dc880c09b06f875f1bf9a7ce8da2796ca4ea578445cedf665f99008aebc49d`
+- `acore/ac-wotlk-db-import:master`
 
-These are pinned intentionally so `authserver`, `worldserver`, `client-data`, and `db-import` stay on the same known
-set of upstream images instead of drifting with `:master`.
+`authserver`, `worldserver`, and `client-data` are pinned intentionally so they do not drift with `:master`.
+`db-import` remains on `:master` for now because the exact successful digest was no longer recoverable from ECS.
 
 ## Quick Start
 
@@ -131,6 +131,40 @@ aws ecs run-task \
 ```
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/mysql-admin`.
+
+## One-Off Auth and Characters Transfer
+
+Terraform also manages a temporary S3 bucket for one-off auth and characters DB
+transfer artifacts. Apply Terraform before using the scripts below, then remove
+the bucket resource after the migration is finished.
+
+Dump and upload local native-MySQL `acore_auth` and `acore_characters`:
+
+```bash
+scripts/export-local-auth-characters.sh
+```
+
+That script uploads compressed dumps to the transfer bucket and prints the
+prefix to use for the cloud-side import.
+
+Import those dumps into the private RDS instance, restore the `realmlist` row to
+the NLB DNS name and world port, and bring the ECS services back up:
+
+```bash
+scripts/import-cloud-auth-characters.sh <transfer-prefix>
+```
+
+The import script:
+
+- scales `azerothcore-authserver` and `azerothcore-worldserver` down to `0`
+- imports `acore_auth` and `acore_characters` from the transfer bucket
+- updates `acore_auth.realmlist` back to the public NLB DNS name and `8085`
+- verifies the `realmlist` row through the existing `mysql-admin` ECS task
+- restores the prior ECS service counts
+
+Set `LOCAL_DB_HOST`, `LOCAL_DB_PORT`, `LOCAL_DB_USER`, `LOCAL_DB_PASSWORD`, or
+`TRANSFER_PREFIX` before running the export script if your local MySQL differs
+from the defaults.
 
 ## Local Smoke Test
 
