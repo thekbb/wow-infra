@@ -19,13 +19,13 @@ variable "auth_desired_count" {
 variable "auth_image" {
   type        = string
   description = "Authserver image URI."
-  default     = "acore/ac-wotlk-authserver:master"
+  default     = "acore/ac-wotlk-authserver@sha256:cc1a457c5bedc3db65248527757eab15232f9c338f38d7c7fc8e7d58fa97a247"
 }
 
 variable "client_data_image" {
   type        = string
   description = "Client data image URI."
-  default     = "acore/ac-wotlk-client-data:master"
+  default     = "acore/ac-wotlk-client-data@sha256:76919b5d8080c0ac55ec17299a79e30bbbd94fae778465b742045af0c806db02"
 }
 
 variable "db_allocated_storage" {
@@ -55,7 +55,7 @@ variable "db_engine_version" {
 variable "db_import_image" {
   type        = string
   description = "DB bootstrap/import image URI."
-  default     = "acore/ac-wotlk-db-import:master"
+  default     = "acore/ac-wotlk-db-import@sha256:f3dc880c09b06f875f1bf9a7ce8da2796ca4ea578445cedf665f99008aebc49d"
 }
 
 variable "db_instance_class" {
@@ -166,5 +166,5 @@ variable "world_desired_count" {
 variable "world_image" {
   type        = string
   description = "Worldserver image URI."
-  default     = "acore/ac-wotlk-worldserver:master"
+  default     = "acore/ac-wotlk-worldserver@sha256:abda30081e74c1d56f8c8728541cf8605e6716c828ea13a139dbc76c1175df53"
 }
