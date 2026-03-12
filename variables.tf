@@ -52,6 +52,12 @@ variable "db_engine_version" {
   default     = "8.4"
 }
 
+variable "db_import_enabled" {
+  type        = bool
+  description = "Whether to create the one-off DB import ECS task definition and log group."
+  default     = true
+}
+
 variable "db_import_image" {
   type        = string
   description = "DB bootstrap/import image URI."

@@ -19,8 +19,8 @@ output "docker_registry_credentials_secret_arn" {
 }
 
 output "db_import_task_definition_arn" {
-  description = "ECS task definition ARN for DB import."
-  value       = aws_ecs_task_definition.db_import.arn
+  description = "ECS task definition ARN for DB import, or null when disabled."
+  value       = try(aws_ecs_task_definition.db_import[0].arn, null)
 }
 
 output "client_data_task_definition_arn" {
