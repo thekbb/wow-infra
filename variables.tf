@@ -1,7 +1,7 @@
 variable "allowed_ingress_cidrs" {
   type        = list(string)
   description = "CIDR blocks allowed to connect to NLB listeners (3724/8085)."
-  default     = ["0.0.0.0/0"]
+  default     = []
 }
 
 variable "auth_container_port" {
