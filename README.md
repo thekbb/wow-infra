@@ -1,7 +1,7 @@
 # AzerothCore AWS Terraform
 
 This repo provisions an AzerothCore stack on AWS using the official precompiled
-`acore` Docker Hub images instead of building AzerothCore from source.
+`acore` Docker Hub images.
 
 ## Summary
 
@@ -13,15 +13,7 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 - One-off ECS task definition for the official `acore/ac-wotlk-db-import` bootstrap image
 - CloudWatch Logs and Secrets Manager for runtime configuration
 
-## Default Images
-
-- `acore/ac-wotlk-authserver@sha256:cc1a457c5bedc3db65248527757eab15232f9c338f38d7c7fc8e7d58fa97a247`
-- `acore/ac-wotlk-client-data@sha256:76919b5d8080c0ac55ec17299a79e30bbbd94fae778465b742045af0c806db02`
-- `acore/ac-wotlk-worldserver@sha256:abda30081e74c1d56f8c8728541cf8605e6716c828ea13a139dbc76c1175df53`
-- `acore/ac-wotlk-db-import:master`
-
 `authserver`, `worldserver`, and `client-data` are pinned intentionally so they do not drift with `:master`.
-`db-import` remains on `:master` for now because the exact successful digest was no longer recoverable from ECS.
 
 ## Quick Start
 
@@ -131,37 +123,6 @@ aws ecs run-task \
 ```
 
 Watch the logs in CloudWatch under `/ecs/azerothcore/mysql-admin`.
-
-## Local Smoke Test
-
-The local [docker-compose.yml](/Users/thekbb/wow-infra/docker-compose.yml) uses
-the official `acore` images too. It starts:
-
-- local MySQL
-- the official `ac-wotlk-client-data` image to populate a Docker volume with maps/vmaps/mmaps
-- the official `ac-wotlk-db-import` image to initialize the databases
-- `authserver` and `worldserver`
-
-Run:
-
-```bash
-docker compose up
-```
-
-```bash
-docker compose config
-```
-
-## Client Data
-
-The official worldserver image expects maps/vmaps/mmaps in `/azerothcore/env/dist/data`. Populate the EFS filesystem
-before players connect. The `client-data` ECS task above is the intended cloud bootstrap path for that.
-
-Then initialize Terraform normally:
-
-```bash
-terraform init
-```
 
 ## Notes
 

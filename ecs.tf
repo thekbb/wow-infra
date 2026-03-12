@@ -13,6 +13,7 @@ resource "aws_cloudwatch_log_group" "world" {
 }
 
 resource "aws_cloudwatch_log_group" "db_import" {
+  count             = var.db_import_enabled ? 1 : 0
   name              = "/ecs/azerothcore/db-import"
   retention_in_days = var.log_retention_days
 }
@@ -179,6 +180,7 @@ resource "aws_ecs_task_definition" "world" {
 }
 
 resource "aws_ecs_task_definition" "db_import" {
+  count                    = var.db_import_enabled ? 1 : 0
   family                   = "azerothcore-db-import"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -222,7 +224,7 @@ resource "aws_ecs_task_definition" "db_import" {
         logConfiguration = {
           logDriver = "awslogs"
           options = {
-            awslogs-group         = aws_cloudwatch_log_group.db_import.name
+            awslogs-group         = aws_cloudwatch_log_group.db_import[0].name
             awslogs-region        = "us-east-2"
             awslogs-stream-prefix = "db-import"
           }
