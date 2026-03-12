@@ -36,6 +36,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::628639830692:role/wow-infra-github-terraform-apply
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: wow-infra-apply-${{ github.run_id }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
