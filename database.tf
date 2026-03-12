@@ -8,6 +8,10 @@ resource "random_password" "db" {
   special = true
 }
 
+resource "random_id" "db_final_snapshot_suffix" {
+  byte_length = 4
+}
+
 resource "aws_secretsmanager_secret" "db" {
   name = "azerothcore-db-credentials"
 }
@@ -28,21 +32,20 @@ resource "aws_secretsmanager_secret_version" "db" {
 }
 
 resource "aws_db_instance" "this" {
+  allocated_storage         = var.db_allocated_storage
   copy_tags_to_snapshot     = true
+  db_name                   = var.db_name
+  db_subnet_group_name      = aws_db_subnet_group.this.name
   deletion_protection       = true
-  identifier                = "azerothcore-mysql"
   engine                    = "mysql"
   engine_version            = var.db_engine_version
-  final_snapshot_identifier = "azerothcore-mysql-final"
+  final_snapshot_identifier = "azerothcore-mysql-final-${random_id.db_final_snapshot_suffix.hex}"
+  identifier                = "azerothcore-mysql"
   instance_class            = var.db_instance_class
-  allocated_storage         = var.db_allocated_storage
-  db_subnet_group_name      = aws_db_subnet_group.this.name
-  vpc_security_group_ids    = [aws_security_group.rds.id]
-  username                  = var.db_username
-  password                  = random_password.db.result
-  db_name                   = var.db_name
-  skip_final_snapshot       = false
-  storage_encrypted         = true
-  publicly_accessible       = false
   multi_az                  = false
+  password                  = random_password.db.result
+  publicly_accessible       = false
+  skip_final_snapshot       = false
+  username                  = var.db_username
+  vpc_security_group_ids    = [aws_security_group.rds.id]
 }
