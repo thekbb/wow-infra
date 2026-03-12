@@ -28,18 +28,21 @@ resource "aws_secretsmanager_secret_version" "db" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier             = "azerothcore-mysql"
-  engine                 = "mysql"
-  engine_version         = var.db_engine_version
-  instance_class         = var.db_instance_class
-  allocated_storage      = var.db_allocated_storage
-  db_subnet_group_name   = aws_db_subnet_group.this.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
-  username               = var.db_username
-  password               = random_password.db.result
-  db_name                = var.db_name
-  skip_final_snapshot    = true
-  publicly_accessible    = false
-  multi_az               = false
-  deletion_protection    = false
+  copy_tags_to_snapshot     = true
+  deletion_protection       = true
+  identifier                = "azerothcore-mysql"
+  engine                    = "mysql"
+  engine_version            = var.db_engine_version
+  final_snapshot_identifier = "azerothcore-mysql-final"
+  instance_class            = var.db_instance_class
+  allocated_storage         = var.db_allocated_storage
+  db_subnet_group_name      = aws_db_subnet_group.this.name
+  vpc_security_group_ids    = [aws_security_group.rds.id]
+  username                  = var.db_username
+  password                  = random_password.db.result
+  db_name                   = var.db_name
+  skip_final_snapshot       = false
+  storage_encrypted         = true
+  publicly_accessible       = false
+  multi_az                  = false
 }
