@@ -19,6 +19,7 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 
 1. Create the remote state bucket.
 1. `terraform init`
+1. Add your allowed public client CIDRs to `allowed_ingress.auto.tfvars`.
 1. `terraform apply`
 1. Run the `db-import` ECS task once.
 1. Run the `client-data` ECS task once.
@@ -129,6 +130,9 @@ Watch the logs in CloudWatch under `/ecs/azerothcore/mysql-admin`.
 - Network Load Balancer preserves the client source IP. Because of that, the ECS
   task security group must allow your client CIDRs directly via
   `allowed_ingress_cidrs`. The NLB itself does not have a security group.
+- Edit `allowed_ingress.auto.tfvars` to add or remove approved player IPs. This
+  file is intended to be easy to update via pull request with `/32` entries for
+  each player's public IP.
 - The official images come from the AzerothCore `acore-docker` project and Docker Hub.
 - The DB bootstrap task is the official AzerothCore importer/bootstrap image.
   It is not the old custom "load an arbitrary SQL dump from S3" flow.
