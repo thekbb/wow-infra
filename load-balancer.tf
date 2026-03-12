@@ -1,8 +1,9 @@
 resource "aws_lb" "nlb" {
-  name               = "azerothcore-nlb"
-  internal           = false
-  load_balancer_type = "network"
-  subnets            = [for s in aws_subnet.public : s.id]
+  name                             = "azerothcore-nlb"
+  internal                         = false
+  load_balancer_type               = "network"
+  enable_cross_zone_load_balancing = true
+  subnets                          = [for s in aws_subnet.public : s.id]
 }
 
 resource "aws_lb_target_group" "auth" {
