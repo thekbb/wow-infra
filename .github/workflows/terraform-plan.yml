@@ -12,6 +12,7 @@ on:
 env:
   AWS_REGION: us-east-2
   TF_CLI_ARGS_init: -lockfile=readonly
+  TF_CLI_ARGS_plan: -input=false -no-color
 
 concurrency:
   group: terraform-plan
@@ -24,18 +25,21 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: write
       id-token: write
+      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::628639830692:role/wow-infra-github-terraform-plan
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: wow-infra-plan-${{ github.run_id }}
 
       - name: Terraform Plan
         uses: thekbb/terraform-plan-commenter-action@v1

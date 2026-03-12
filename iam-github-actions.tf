@@ -53,8 +53,7 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
         Sid    = "TerraformStateObjectReadWrite"
         Effect = "Allow"
         Action = [
-          "s3:GetObject",
-          "s3:PutObject"
+          "s3:GetObject"
         ]
         Resource = "arn:aws:s3:::wow-infra-tfstate/wow-infra/terraform.tfstate"
       },
@@ -85,8 +84,6 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "rds:Describe*",
           "rds:ListTagsForResource",
           "secretsmanager:DescribeSecret",
-          "secretsmanager:GetResourcePolicy",
-          "secretsmanager:GetSecretValue",
           "secretsmanager:List*",
           "sts:GetCallerIdentity"
         ]
