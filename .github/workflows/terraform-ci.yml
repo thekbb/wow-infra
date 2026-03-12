@@ -2,6 +2,11 @@ name: Infrastructure CI
 
 on:
   pull_request:
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - ".terraform.lock.hcl"
+      - ".github/workflows/**"
 
 env:
   TF_CLI_ARGS_init: -backend=false -lockfile=readonly

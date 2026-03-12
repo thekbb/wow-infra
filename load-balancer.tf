@@ -12,6 +12,8 @@ resource "aws_lb_target_group" "auth" {
   vpc_id      = aws_vpc.this.id
   target_type = "ip"
 
+  preserve_client_ip = true
+
   health_check {
     protocol = "TCP"
     port     = var.auth_container_port
@@ -24,6 +26,8 @@ resource "aws_lb_target_group" "world" {
   protocol    = "TCP"
   vpc_id      = aws_vpc.this.id
   target_type = "ip"
+
+  preserve_client_ip = true
 
   health_check {
     protocol = "TCP"
