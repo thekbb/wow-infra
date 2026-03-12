@@ -14,7 +14,7 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 - CloudWatch Logs and Secrets Manager for runtime configuration
 
 `authserver`, `worldserver`, and `client-data` are pinned intentionally so they do not drift with `:master`.
-`
+
 ## Quick Start
 
 1. Create the remote state bucket.
