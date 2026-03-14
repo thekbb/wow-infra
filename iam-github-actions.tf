@@ -99,6 +99,14 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           aws_secretsmanager_secret.db.arn,
           aws_secretsmanager_secret.docker_registry.arn
         ]
+      },
+      {
+        Sid    = "TerraformPlanReadDbSecretValue"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.db.arn
       }
     ]
   })
