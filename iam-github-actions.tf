@@ -88,6 +88,17 @@ resource "aws_iam_policy" "github_actions_terraform_plan" {
           "sts:GetCallerIdentity"
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "TerraformPlanReadSecretPolicies"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetResourcePolicy"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.db.arn,
+          aws_secretsmanager_secret.docker_registry.arn
+        ]
       }
     ]
   })
