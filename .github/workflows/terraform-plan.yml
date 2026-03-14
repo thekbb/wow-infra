@@ -37,7 +37,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::628639830692:role/wow-infra-github-terraform-plan
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/wow-infra-github-terraform-plan
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: wow-infra-plan-${{ github.run_id }}
 
