@@ -88,6 +88,12 @@ variable "db_world_name" {
   default     = "acore_world"
 }
 
+variable "deep_sleep_mode" {
+  type        = bool
+  description = "Whether to remove the public runtime path and ECS services for maximum idle cost savings."
+  default     = false
+}
+
 variable "desired_task_cpu" {
   type        = number
   description = "Task CPU units for both services."

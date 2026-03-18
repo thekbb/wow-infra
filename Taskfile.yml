@@ -4,6 +4,8 @@ env:
   AWS_REGION: "${AWS_REGION:-us-east-2}"
 
 vars:
+  ECS_RUNTIME_DESIRED_COUNT: "{{default \"1\" .ECS_RUNTIME_DESIRED_COUNT}}"
+  SLEEP_TFVARS_FILE: "{{.TF_DIR}}/sleep.auto.tfvars"
   TF_DIR: "."
 
 silent: false
@@ -46,6 +48,154 @@ tasks:
         --services azerothcore-authserver azerothcore-worldserver
         --query 'services[].{service:serviceName,desired:desiredCount,running:runningCount,pending:pendingCount,status:status}'
         --output table
+
+  aws:rds:start:
+    internal: true
+    cmds:
+      - 'echo "starting: ensuring RDS instance is available"'
+      - >-
+        DB_STATUS="$(aws rds describe-db-instances
+        --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)"
+        --query 'DBInstances[0].DBInstanceStatus'
+        --output text)" &&
+        if [ "$DB_STATUS" = "available" ]; then
+          echo "info: RDS instance is already available";
+        elif [ "$DB_STATUS" = "starting" ]; then
+          echo "info: RDS instance is already starting; waiting for availability";
+        elif [ "$DB_STATUS" = "stopping" ]; then
+          echo "info: RDS instance is stopping; waiting for it to stop before starting";
+          aws rds wait db-instance-stopped
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+          aws rds start-db-instance
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+        else
+          aws rds start-db-instance
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+        fi
+      - >-
+        aws rds wait db-instance-available
+        --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)"
+      - 'echo "completed: ensuring RDS instance is available"'
+
+  aws:rds:stop:
+    internal: true
+    cmds:
+      - 'echo "starting: ensuring RDS instance is stopped"'
+      - >-
+        DB_STATUS="$(aws rds describe-db-instances
+        --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)"
+        --query 'DBInstances[0].DBInstanceStatus'
+        --output text)" &&
+        if [ "$DB_STATUS" = "stopped" ]; then
+          echo "info: RDS instance is already stopped";
+        elif [ "$DB_STATUS" = "stopping" ]; then
+          echo "info: RDS instance is already stopping; waiting for it to stop";
+        elif [ "$DB_STATUS" = "starting" ]; then
+          echo "info: RDS instance is starting; waiting for availability before stopping";
+          aws rds wait db-instance-available
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+          aws rds stop-db-instance
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+        else
+          aws rds stop-db-instance
+          --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)";
+        fi
+      - >-
+        aws rds wait db-instance-stopped
+        --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)"
+      - 'echo "completed: ensuring RDS instance is stopped"'
+
+  aws:runtime:assert-services-present:
+    internal: true
+    cmds:
+      - >-
+        test "$(aws ecs describe-services
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --services azerothcore-authserver azerothcore-worldserver
+        --query 'length(failures)'
+        --output text)" = "0" ||
+        {
+          echo "error: ECS auth/world services are absent; run task aws:wake to recreate them";
+          exit 1;
+        }
+
+  aws:deep-sleep:
+    desc: Destroy NAT/NLB/ECS services for maximum idle savings, then stop the RDS instance.
+    cmds:
+      - 'echo "starting: writing {{.SLEEP_TFVARS_FILE}}"'
+      - 'printf ''deep_sleep_mode = true\n'' > {{.SLEEP_TFVARS_FILE}}'
+      - 'echo "completed: writing {{.SLEEP_TFVARS_FILE}}"'
+      - 'echo "starting: applying Terraform deep_sleep_mode=true"'
+      - terraform -chdir={{.TF_DIR}} apply
+      - 'echo "completed: applying Terraform deep_sleep_mode=true"'
+      - task: aws:rds:stop
+
+  aws:runtime:start:
+    desc: Start the RDS instance, then start existing ECS auth/world services without recreating NAT/NLB.
+    cmds:
+      - task: aws:runtime:assert-services-present
+      - task: aws:rds:start
+      - 'echo "starting: scaling ECS auth/world services to {{.ECS_RUNTIME_DESIRED_COUNT}}"'
+      - >-
+        aws ecs update-service
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --service azerothcore-authserver
+        --desired-count {{.ECS_RUNTIME_DESIRED_COUNT}}
+      - >-
+        aws ecs update-service
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --service azerothcore-worldserver
+        --desired-count {{.ECS_RUNTIME_DESIRED_COUNT}}
+      - >-
+        aws ecs wait services-stable
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --services azerothcore-authserver azerothcore-worldserver
+      - 'echo "completed: scaling ECS auth/world services to {{.ECS_RUNTIME_DESIRED_COUNT}}"'
+
+  aws:runtime:status:
+    desc: Show runtime status for ECS auth/world services and the RDS instance.
+    cmds:
+      - task: aws:services
+      - >-
+        aws rds describe-db-instances
+        --db-instance-identifier "$(terraform -chdir={{.TF_DIR}} output -raw rds_instance_identifier)"
+        --query 'DBInstances[0].{identifier:DBInstanceIdentifier,status:DBInstanceStatus,endpoint:Endpoint.Address}'
+        --output table
+
+  aws:runtime:stop:
+    desc: Scale ECS auth/world services to zero, then stop the RDS instance without destroying NAT/NLB.
+    cmds:
+      - task: aws:runtime:assert-services-present
+      - 'echo "starting: scaling ECS auth/world services to 0"'
+      - >-
+        aws ecs update-service
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --service azerothcore-authserver
+        --desired-count 0
+      - >-
+        aws ecs update-service
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --service azerothcore-worldserver
+        --desired-count 0
+      - >-
+        aws ecs wait services-stable
+        --cluster "$(terraform -chdir={{.TF_DIR}} output -raw ecs_cluster_name)"
+        --services azerothcore-authserver azerothcore-worldserver
+      - 'echo "completed: scaling ECS auth/world services to 0"'
+      - task: aws:rds:stop
+
+  aws:wake:
+    desc: Start the RDS instance, then recreate NAT/NLB/ECS services by applying deep_sleep_mode=false.
+    cmds:
+      - task: aws:rds:start
+      - 'echo "starting: removing {{.SLEEP_TFVARS_FILE}}"'
+      - 'rm -f {{.SLEEP_TFVARS_FILE}}'
+      - 'echo "completed: removing {{.SLEEP_TFVARS_FILE}}"'
+      - 'echo "starting: applying Terraform deep_sleep_mode=false"'
+      - terraform -chdir={{.TF_DIR}} apply
+      - 'echo "completed: applying Terraform deep_sleep_mode=false"'
+      - 'echo "info: NLB DNS is $(terraform -chdir={{.TF_DIR}} output -raw nlb_dns_name)"'
+      - 'echo "info: update wow.thekbb.net if your DNS is managed outside Terraform"'
 
   wow:adduser:
     desc: "Create an AzerothCore account via the mysql-admin ECS task. Usage: task wow:adduser ACCOUNT_NAME=<name> [GMLEVEL=3]"

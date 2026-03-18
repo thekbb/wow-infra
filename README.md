@@ -25,6 +25,63 @@ This repo provisions an AzerothCore stack on AWS using the official precompiled
 1. Run the `client-data` ECS task once.
 1. Update `acore_auth.realmlist.address` to the NLB DNS name or your domain.
 
+## Cost-Saving Operations
+
+The repo includes `task` commands for two different idle modes:
+
+- `runtime:stop` and `runtime:start` keep the NLB, NAT, and ECS services defined,
+  but scale `authserver` and `worldserver` to `0` and stop or start RDS. Use this
+  when you want a faster resume and a stable NLB DNS name.
+- `deep-sleep` and `wake` toggle Terraform `deep_sleep_mode`, which destroys the
+  NLB, NAT gateways, private NAT routes, and ECS services for maximum savings,
+  then stops or starts RDS. Use this when the realm will be down long enough that
+  the slower wake-up path is acceptable.
+
+Check current status:
+
+```bash
+task aws:runtime:status
+```
+
+Stop the game runtime without destroying the public path:
+
+```bash
+task aws:runtime:stop
+```
+
+Start the game runtime again, optionally with a different desired ECS count:
+
+```bash
+task aws:runtime:start
+ECS_RUNTIME_DESIRED_COUNT=2 task aws:runtime:start
+```
+
+Enter the lowest-cost deep sleep mode:
+
+```bash
+task aws:deep-sleep
+```
+
+Wake the stack back up and recreate the runtime path:
+
+```bash
+task aws:wake
+```
+
+Operational notes:
+
+- `task aws:runtime:start` and `task aws:runtime:stop` only work if the ECS
+  services still exist. If you previously ran `task aws:deep-sleep`, run
+  `task aws:wake` instead.
+- `task aws:deep-sleep` writes `sleep.auto.tfvars` with
+  `deep_sleep_mode = true`. `task aws:wake` removes that file before applying
+  Terraform again. The file is ignored by Git.
+- `task aws:wake` may produce a new NLB DNS name because the NLB is recreated.
+  If your public DNS is managed outside Terraform, update it after wake.
+- One-off ECS tasks such as `db-import`, `client-data`, and `mysql-admin` depend
+  on the private runtime network path. Do not expect them to run while deep sleep
+  mode is active.
+
 ## Docker Hub Rate Limits
 
 AWS ECS pulls these official `acore` images from Docker Hub. If you hit unauthenticated pull rate limits, let Terraform

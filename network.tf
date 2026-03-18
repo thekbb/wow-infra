@@ -24,12 +24,12 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_eip" "nat" {
-  for_each = aws_subnet.public
+  for_each = var.deep_sleep_mode ? {} : aws_subnet.public
   domain   = "vpc"
 }
 
 resource "aws_nat_gateway" "this" {
-  for_each      = aws_subnet.public
+  for_each      = var.deep_sleep_mode ? {} : aws_subnet.public
   allocation_id = aws_eip.nat[each.key].id
   subnet_id     = each.value.id
   depends_on    = [aws_internet_gateway.this]
@@ -57,7 +57,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route" "private_nat" {
-  for_each               = aws_route_table.private
+  for_each               = var.deep_sleep_mode ? {} : aws_route_table.private
   route_table_id         = each.value.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.this[each.key].id

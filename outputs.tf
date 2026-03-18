@@ -1,11 +1,16 @@
 output "nlb_dns_name" {
   description = "Public NLB DNS name."
-  value       = aws_lb.nlb.dns_name
+  value       = try(aws_lb.nlb[0].dns_name, null)
 }
 
 output "rds_endpoint" {
   description = "RDS endpoint address."
   value       = aws_db_instance.this.address
+}
+
+output "rds_instance_identifier" {
+  description = "RDS instance identifier."
+  value       = aws_db_instance.this.identifier
 }
 
 output "db_secret_arn" {
@@ -53,7 +58,7 @@ output "connection_info" {
   value = {
     auth_port  = var.auth_container_port
     world_port = var.world_container_port
-    realm_host = aws_lb.nlb.dns_name
+    realm_host = try(aws_lb.nlb[0].dns_name, null)
   }
 }
 

@@ -324,6 +324,7 @@ resource "aws_ecs_task_definition" "mysql_admin" {
 }
 
 resource "aws_ecs_service" "auth" {
+  count           = var.deep_sleep_mode ? 0 : 1
   name            = "azerothcore-authserver"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.auth.arn
@@ -337,15 +338,16 @@ resource "aws_ecs_service" "auth" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.auth.arn
+    target_group_arn = aws_lb_target_group.auth[0].arn
     container_name   = "authserver"
     container_port   = var.auth_container_port
   }
 
-  depends_on = [aws_lb_listener.auth]
+  depends_on = [aws_lb_listener.auth, aws_route.private_nat]
 }
 
 resource "aws_ecs_service" "world" {
+  count           = var.deep_sleep_mode ? 0 : 1
   name            = "azerothcore-worldserver"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.world.arn
@@ -359,10 +361,10 @@ resource "aws_ecs_service" "world" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.world.arn
+    target_group_arn = aws_lb_target_group.world[0].arn
     container_name   = "worldserver"
     container_port   = var.world_container_port
   }
 
-  depends_on = [aws_lb_listener.world, aws_efs_mount_target.data]
+  depends_on = [aws_lb_listener.world, aws_efs_mount_target.data, aws_route.private_nat]
 }
